@@ -1,0 +1,84 @@
+/* src/theme/variables.css dosyasının en üst kısmı */
+
+/* Tema aktifken uygulanacak değişkenler */
+.theme-light {
+    /* Genel Arka Planlar */
+    --ion-background-color: #f7f7f7; 
+    /* Ana Metin Rengi */
+    --ion-text-color: #000000;
+    
+    /* Footer/Tab Bar Ayarları (Açık Tema) */
+    --ion-tab-bar-background: #ffffff;
+    --ion-tab-bar-color-selected: #008000; /* Klasik Yeşil */
+    --ion-tab-bar-color: #666666; /* Pasif ikon/yazı */
+}
+
+/* src/theme/variables.css dosyasının içine veya sonuna ekle */
+
+:root {
+  /* Tally Ana Renk Paleti */
+  --tally-primary: #82ca9d; /* Yumuşak Neon Yeşil (Pozitif, Hesap) */
+  --tally-dark: #1e1e1e;   /* Koyu Antrasit Arka Plan */
+  --tally-medium: #4a4a4a; /* İkincil Koyu Ton */
+}
+
+/* ----------------------------------------------------------------------- */
+/* IONIC TEMA DEĞİŞKENLERİ (ION-TAB-BAR ODAKLI) */
+/* ----------------------------------------------------------------------- */
+
+.ios ion-tab-bar, 
+.md ion-tab-bar {
+  /* Arka plan: Koyu Antrasit */
+  --background: var(--tally-dark); 
+  
+  /* Üst kenarlık çizgisi: Yumuşak bir gri tonu, tercihen görünmez (none) */
+  --border: none; 
+}
+
+/* Seçili (Aktif) İkon ve Metin */
+ion-tab-button.tab-selected {
+  /* Seçili öğenin rengi: Neon yeşil */
+  --color-selected: var(--tally-primary);
+  
+  /* Seçili öğenin arka planına hafif bir gölge veya renk verebiliriz */
+  /* --background-focused: var(--tally-medium); */
+}
+
+/* Seçili Olmayan (Pasif) İkon ve Metin */
+ion-tab-button {
+  /* Pasif öğe rengi: Soluk Gri */
+  --color: #a8a8a8;
+  
+  /* İkonlar ve yazı arasındaki boşluğu artırma */
+  /* --padding-top: 5px; */
+}
+
+/* src/theme/variables.css dosyasının sonuna ekle */
+
+.theme-dark {
+    /* Genel Arka Planlar */
+    --ion-background-color: #1e1e1e; /* Koyu Antrasit */
+    /* Ana Metin Rengi */
+    --ion-text-color: #ffffff;
+    
+    /* Footer/Tab Bar Ayarları (Koyu Tema) */
+    --ion-tab-bar-background: #121212; /* Daha da koyu alt menü */
+    --ion-tab-bar-color-selected: #82ca9d; /* Neon Yeşil (Tally Rengi) */
+    --ion-tab-bar-color: #a8a8a8;
+    
+    /* Sayfa İçeriği */
+    --ion-card-background: #252525;
+}
+
+/* Tüm bileşenler için renkleri tema değişkenlerine göre ayarlama */
+
+/* Tab Bar için spesifik ayarlar (Her iki temada da çalışır) */
+ion-tab-bar {
+    background: var(--ion-tab-bar-background);
+    /* ... diğer genel ayarlar ... */
+}
+
+/* Aktif (seçili) Tab Butonu */
+ion-tab-button.tab-selected {
+    color: var(--ion-tab-bar-color-selected);
+}
