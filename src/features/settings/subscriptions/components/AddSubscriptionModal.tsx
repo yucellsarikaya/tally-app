@@ -157,6 +157,8 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
             >
               <IonSelectOption value="monthly">Aylık</IonSelectOption>
               <IonSelectOption value="yearly">Yıllık</IonSelectOption>
+              {/* YENİ SEÇENEK: */}
+              <IonSelectOption value="onetime">Tek Seferlik</IonSelectOption>
             </IonSelect>
           </IonItem>
 

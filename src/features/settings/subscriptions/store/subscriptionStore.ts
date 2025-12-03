@@ -9,9 +9,9 @@ export interface Subscription {
   platform: string;
   price: number;
   currency: "TRY" | "USD" | "EUR";
-  billingPeriod: "monthly" | "yearly";
   firstBillDate: string;
   isActive: boolean;
+  billingPeriod: "monthly" | "yearly" | "onetime";
 }
 
 // Store'un genel tipi
@@ -63,24 +63,55 @@ export const useSubStore = create<SubState>()(
 
       // Toplam Gider Hesaplama (Şimdilik sabit kur üzerinden)
       getTotalMonthlyExpenseTRY: () => {
-        // Gerçekte burada döviz kurunu Zustand'dan çekip hesaplama yapacaksın.
         const MOCK_USD_TO_TRY = 32.5;
+        const MOCK_EUR_TO_TRY = 35.0;
+
+        // Bugünün tarihi
+        const now = new Date();
+        const currentMonth = now.getMonth();
+        const currentYear = now.getFullYear();
 
         return get().subscriptions.reduce((total, sub) => {
-          let monthlyCost = sub.price;
+          // Pasif abonelikleri atla
+          if (!sub.isActive) return total;
 
-          // Yıllık ise 12'ye böl
-          if (sub.billingPeriod === "yearly") {
-            monthlyCost = sub.price / 12;
+          let costToAdd = 0;
+
+          // --- 1. TEK SEFERLİK KONTROLÜ ---
+          if (sub.billingPeriod === "onetime") {
+            const billDate = new Date(sub.firstBillDate);
+
+            // Eğer harcama BU YIL ve BU AY yapıldıysa toplama ekle
+            if (
+              billDate.getMonth() === currentMonth &&
+              billDate.getFullYear() === currentYear
+            ) {
+              costToAdd = sub.price;
+            } else {
+              // Başka bir aysa toplama ekleme (0 ekle)
+              return total;
+            }
+          }
+          // --- 2. AYLIK/YILLIK ABONELİK KONTROLÜ ---
+          else {
+            costToAdd = sub.price;
+            // Yıllık ise 12'ye bölerek aylık maliyeti bul
+            if (sub.billingPeriod === "yearly") {
+              costToAdd = sub.price / 12;
+            }
           }
 
-          // USD ise kura çevir
+          // --- 3. PARA BİRİMİ ÇEVİRME ---
           if (sub.currency === "USD") {
-            return total + monthlyCost * MOCK_USD_TO_TRY;
+            return total + costToAdd * MOCK_USD_TO_TRY;
           }
-          // TRY ise doğrudan ekle
-          return total + monthlyCost;
-        }, 0); // Başlangıç toplamı 0
+          if (sub.currency === "EUR") {
+            return total + costToAdd * MOCK_EUR_TO_TRY;
+          }
+
+          // TRY ise direkt ekle
+          return total + costToAdd;
+        }, 0);
       },
     }),
     {

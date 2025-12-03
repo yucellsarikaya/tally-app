@@ -79,6 +79,48 @@ const ListPage: React.FC = () => {
               // 2. SONRA o config'in içindeki ikonu bir değişkene atıyoruz
               const IconComponent = config.icon;
 
+              // --- TARİH KONTROL MANTIĞI ---
+              const billDate = new Date(sub.firstBillDate);
+              const now = new Date();
+
+              // Bu işlem BU AY içinde mi?
+              const isThisMonth =
+                billDate.getMonth() === now.getMonth() &&
+                billDate.getFullYear() === now.getFullYear();
+
+              // Bu işlem GEÇMİŞTE mi kalmış? (Bu ay değil ve tarihi bugünden küçük)
+              const isPast = billDate < now && !isThisMonth;
+
+              // --- ETİKET METNİ OLUŞTURMA ---
+              let subDescription = "";
+
+              if (sub.billingPeriod === "onetime") {
+                if (isThisMonth) {
+                  subDescription = `✅ Bu Ayın Harcaması • ${billDate.toLocaleDateString(
+                    "tr-TR"
+                  )}`;
+                } else if (isPast) {
+                  // YENİ: Geçmiş olduğunu belirtiyoruz
+                  subDescription = `⚠️ Geçmiş Harcama • ${billDate.toLocaleDateString(
+                    "tr-TR"
+                  )}`;
+                } else {
+                  // Gelecek harcama
+                  subDescription = `📅 Planlanan • ${billDate.toLocaleDateString(
+                    "tr-TR"
+                  )}`;
+                }
+              } else {
+                // Normal Abonelik (Aylık/Yıllık)
+                subDescription = `${
+                  sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"
+                } • İlk Ödeme: ${billDate.toLocaleDateString("tr-TR")}`;
+              }
+
+              // --- RENK AYARLAMA ---
+              // Geçmiş harcamaları biraz soluk gösterelim
+              const itemColor =
+                sub.billingPeriod === "onetime" && isPast ? "medium" : "";
               return (
                 <IonItem key={sub.id} detail={true} button lines="full">
                   {/* İkon Alanı */}
@@ -102,16 +144,36 @@ const ListPage: React.FC = () => {
                   </div>
 
                   <IonLabel>
-                    <h2 style={{ fontWeight: "bold" }}>{sub.name}</h2>
-                    <p>
-                      {sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"} •{" "}
-                      {new Date(sub.firstBillDate).toLocaleDateString("tr-TR")}
+                    <h2
+                      style={{
+                        fontWeight: "bold",
+                        color: isPast ? "#888" : "",
+                      }}
+                    >
+                      {sub.name}
+                    </h2>
+                    <p
+                      style={{
+                        color:
+                          sub.billingPeriod === "onetime" && isThisMonth
+                            ? "var(--ion-color-success-shade)"
+                            : "",
+                      }}
+                    >
+                      {subDescription}
                     </p>
                   </IonLabel>
-
                   <IonBadge
                     slot="end"
-                    color={sub.isActive ? "success" : "medium"}
+                    color={
+                      !sub.isActive
+                        ? "medium"
+                        : sub.billingPeriod === "onetime"
+                        ? isThisMonth
+                          ? "warning"
+                          : "medium"
+                        : "success"
+                    }
                   >
                     {sub.price} {sub.currency}
                   </IonBadge>
