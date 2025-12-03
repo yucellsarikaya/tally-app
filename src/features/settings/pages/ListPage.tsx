@@ -24,6 +24,7 @@ import {
   add,
   alertCircleOutline,
   informationCircle,
+  pricetagOutline,
   trash,
 } from "ionicons/icons";
 
@@ -123,17 +124,50 @@ const ListPage: React.FC = () => {
           {subscriptions.length === 0 ? (
             <div
               style={{
-                padding: "50px 20px",
+                padding: "80px 20px",
                 textAlign: "center",
-                opacity: 0.7,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "center",
               }}
             >
+              {/* İlgili ve Büyük İkon */}
               <IonIcon
-                icon={alertCircleOutline}
-                style={{ fontSize: "64px", color: "#666" }}
+                icon={pricetagOutline} // Fiyat etiketi/Takip ikonu
+                // Orta tonlu renk, dikkat dağıtmasın
+                style={{ fontSize: "96px", color: "var(--ion-color-medium)" }}
               />
-              <h3>Hiç Abonelik Yok</h3>
-              <p>Sağ alttaki + butonuna basarak ilk aboneliğini ekle.</p>
+
+              {/* Başlık */}
+              <h3
+                style={{
+                  margin: "16px 0 8px 0",
+                  fontWeight: "700",
+                  color: "var(--ion-color-dark)",
+                }}
+              >
+                Henüz Hiç Abonelik Kaydı Yok
+              </h3>
+
+              {/* Yönlendirme Metni */}
+              <p
+                style={{
+                  margin: 0,
+                  color: "var(--ion-color-medium)",
+                  maxWidth: "280px",
+                }}
+              >
+                Harcamalarını ve tekrar eden aboneliklerini takip etmeye
+                başlamak için aşağıdaki yeşil **+** butonuna dokun.
+              </p>
+
+              {/* Görsel Yönlendirme İpucu */}
+              <IonIcon
+                icon={add}
+                color="success" // FAB butonuyla aynı renk
+                style={{ fontSize: "32px", marginTop: "30px", opacity: 0.6 }}
+              />
             </div>
           ) : (
             subscriptions.map((sub: any) => {
