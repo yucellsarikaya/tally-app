@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IonPage,
   IonHeader,
@@ -14,13 +14,19 @@ import {
   IonIcon,
   IonText,
   IonModal,
+  useIonAlert,
+  IonItemSliding,
+  IonItemOptions,
+  IonItemOption,
+  IonToast,
 } from "@ionic/react";
-import { add, alertCircleOutline } from "ionicons/icons";
+import {
+  add,
+  alertCircleOutline,
+  informationCircle,
+  trash,
+} from "ionicons/icons";
 
-// --- IMPORTLARA DİKKAT ---
-// Store ve Modal importları (kendi proje yapına göre ../ sayısını kontrol et)
-
-// Utils importu (Buradaki ../../../ sayısı dosya yapına göre değişebilir ama genelde budur)
 import { getPlatformConfig } from "../../../utils/platforms";
 import { useSubStore } from "../subscriptions/store/subscriptionStore";
 import AddSubscriptionModal from "../subscriptions/components/AddSubscriptionModal";
@@ -32,10 +38,58 @@ const ListPage: React.FC = () => {
   );
 
   const [showModal, setShowModal] = useState(false);
-  const totalExpense = getTotalMonthlyExpenseTRY();
+  const [showTip, setShowTip] = useState(false);
 
-  // DİKKAT: Burada "IconComponent" veya "config" tanımlaması YAPMIYORUZ.
-  // Çünkü burada hangi abonelikten bahsettiğimizi henüz bilmiyoruz.
+  const totalExpense = getTotalMonthlyExpenseTRY();
+  const removeSubscription = useSubStore((state) => state.removeSubscription);
+  const [presentAlert] = useIonAlert();
+  const handleDeleteClick = (id: string) => {
+    presentAlert({
+      header: "Silmek İstediğine Emin misin?",
+      message: "Bu işlem geri alınamaz.",
+      buttons: [
+        {
+          text: "Vazgeç",
+          role: "cancel",
+        },
+        {
+          text: "Sil",
+          role: "destructive", // Kırmızı renkli buton
+          handler: () => {
+            removeSubscription(id); // Onay verilirse sil
+          },
+        },
+      ],
+    });
+  };
+
+  useEffect(() => {
+    const hasSeenTip = localStorage.getItem("hasSeenSwipeTip");
+    if (subscriptions.length > 0 && !hasSeenTip) {
+      const timer = setTimeout(() => {
+        setShowTip(true);
+        localStorage.setItem("hasSeenSwipeTip", "true");
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [subscriptions.length]);
+  <IonToast
+    isOpen={showTip}
+    onDidDismiss={() => setShowTip(false)}
+    message="💡 İpucu: Düzenlemek veya silmek için aboneliği sola kaydırın."
+    duration={40000} // 4 saniye ekranda kalsın
+    position="bottom"
+    buttons={[
+      {
+        text: "Tamam",
+        role: "cancel",
+        handler: () => {
+          console.log("İpucu kapatıldı");
+        },
+      },
+    ]}
+  />;
 
   return (
     <IonPage>
@@ -122,62 +176,72 @@ const ListPage: React.FC = () => {
               const itemColor =
                 sub.billingPeriod === "onetime" && isPast ? "medium" : "";
               return (
-                <IonItem key={sub.id} detail={true} button lines="full">
-                  {/* İkon Alanı */}
-                  <div
-                    slot="start"
-                    style={{
-                      backgroundColor: config.color + "20", // Rengin şeffaf hali
-                      color: config.color,
-                      width: 48,
-                      height: 48,
-                      borderRadius: 12,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      fontSize: "24px",
-                      marginRight: "12px",
-                    }}
-                  >
-                    {/* İkonu burada 'Render' ediyoruz */}
-                    <IconComponent />
-                  </div>
+                <IonItemSliding key={sub.id}>
+                  <IonItem key={sub.id} detail={true} button lines="full">
+                    {/* İkon Alanı */}
+                    <div
+                      slot="start"
+                      style={{
+                        backgroundColor: config.color + "20", // Rengin şeffaf hali
+                        color: config.color,
+                        width: 48,
+                        height: 48,
+                        borderRadius: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "24px",
+                        marginRight: "12px",
+                      }}
+                    >
+                      {/* İkonu burada 'Render' ediyoruz */}
+                      <IconComponent />
+                    </div>
 
-                  <IonLabel>
-                    <h2
-                      style={{
-                        fontWeight: "bold",
-                        color: isPast ? "#888" : "",
-                      }}
+                    <IonLabel>
+                      <h2
+                        style={{
+                          fontWeight: "bold",
+                          color: isPast ? "#888" : "",
+                        }}
+                      >
+                        {sub.name}
+                      </h2>
+                      <p
+                        style={{
+                          color:
+                            sub.billingPeriod === "onetime" && isThisMonth
+                              ? "var(--ion-color-success-shade)"
+                              : "",
+                        }}
+                      >
+                        {subDescription}
+                      </p>
+                    </IonLabel>
+                    <IonBadge
+                      slot="end"
+                      color={
+                        !sub.isActive
+                          ? "medium"
+                          : sub.billingPeriod === "onetime"
+                          ? isThisMonth
+                            ? "warning"
+                            : "medium"
+                          : "success"
+                      }
                     >
-                      {sub.name}
-                    </h2>
-                    <p
-                      style={{
-                        color:
-                          sub.billingPeriod === "onetime" && isThisMonth
-                            ? "var(--ion-color-success-shade)"
-                            : "",
-                      }}
+                      {sub.price} {sub.currency}
+                    </IonBadge>
+                  </IonItem>
+                  <IonItemOptions side="end">
+                    <IonItemOption
+                      color="danger"
+                      onClick={() => handleDeleteClick(sub.id)}
                     >
-                      {subDescription}
-                    </p>
-                  </IonLabel>
-                  <IonBadge
-                    slot="end"
-                    color={
-                      !sub.isActive
-                        ? "medium"
-                        : sub.billingPeriod === "onetime"
-                        ? isThisMonth
-                          ? "warning"
-                          : "medium"
-                        : "success"
-                    }
-                  >
-                    {sub.price} {sub.currency}
-                  </IonBadge>
-                </IonItem>
+                      <IonIcon slot="icon-only" icon={trash} />
+                    </IonItemOption>
+                  </IonItemOptions>
+                </IonItemSliding>
               );
             })
             // --- DÖNGÜ BİTİŞİ ---
@@ -189,6 +253,22 @@ const ListPage: React.FC = () => {
             <IonIcon icon={add} />
           </IonFabButton>
         </IonFab>
+
+        <IonToast
+          isOpen={showTip}
+          onDidDismiss={() => setShowTip(false)}
+          message="💡 İpucu: Silmek için öğeyi sola kaydırın."
+          duration={3000}
+          position="bottom"
+          icon={informationCircle}
+          color="dark"
+          buttons={[
+            {
+              text: "Tamam",
+              role: "cancel",
+            },
+          ]}
+        />
 
         <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
           <AddSubscriptionModal dismissModal={() => setShowModal(false)} />
