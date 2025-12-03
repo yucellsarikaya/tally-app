@@ -24,8 +24,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// --- MOCK VERİSİ (Zustand verisinden gerçek veriyi alana kadar placeholder) ---
-// Gerçek projede, bu veri (spendingData) Zustand'dan veya custom bir hook'tan gelmelidir.
 const mockSpendingData = [
   { month: "Ocak", gider: 4500 },
   { month: "Şubat", gider: 4800 },
@@ -35,9 +33,6 @@ const mockSpendingData = [
 ];
 
 const AnalyticsPage: React.FC = () => {
-  // Şu an için sadece Abonelik verisine ihtiyacımız var (ileride bu veriyi işleyeceğiz)
-  // Toplam Aylık Gideri tekrar hesaplamaya gerek yok, sadece ListPage için çağırmıştık.
-
   const [segmentValue, setSegmentValue] = React.useState<
     "monthly" | "category"
   >("monthly");
@@ -48,8 +43,6 @@ const AnalyticsPage: React.FC = () => {
         <IonToolbar>
           <IonTitle>Analiz</IonTitle>
         </IonToolbar>
-
-        {/* SEGMENT SEÇİMİ: Aylık Trend mi? Kategori Dağılımı mı? */}
         <IonToolbar>
           <IonSegment
             value={segmentValue}
@@ -68,7 +61,6 @@ const AnalyticsPage: React.FC = () => {
       </IonHeader>
 
       <IonContent fullscreen className="ion-padding">
-        {/* GRAFİK KARTI (Aylık Trend) */}
         {segmentValue === "monthly" && (
           <IonCard>
             <IonCardHeader>
@@ -78,21 +70,17 @@ const AnalyticsPage: React.FC = () => {
               <div style={{ width: "100%", height: 300 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart
-                    data={mockSpendingData} // Gerçek veriyi buraya bağlayacağız
+                    data={mockSpendingData}
                     margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
                     <XAxis dataKey="month" stroke="#666" />
                     <YAxis stroke="#666" />
                     <Tooltip
-                      // Eski kod: formatter={(value) => [...]
                       formatter={(value) => {
-                        // Gelen değerin bir sayı (number) olduğunu kontrol et
                         if (typeof value === "number") {
-                          // Sayıysa, toFixed metodunu güvenle kullan ve formatla
                           return [`₺ ${value.toFixed(2)}`, "Gider"];
                         }
-                        // Sayı değilse (örneğin string ise), olduğu gibi döndür
                         return [value, "Gider"];
                       }}
                       contentStyle={{
@@ -107,8 +95,6 @@ const AnalyticsPage: React.FC = () => {
             </IonCardContent>
           </IonCard>
         )}
-
-        {/* GRAFİK KARTI (Kategori Dağılımı) - İleride buraya PieChart gelecek */}
         {segmentValue === "category" && (
           <IonCard>
             <IonCardHeader>

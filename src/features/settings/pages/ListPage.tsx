@@ -30,6 +30,7 @@ import {
 import { getPlatformConfig } from "../../../utils/platforms";
 import { useSubStore } from "../subscriptions/store/subscriptionStore";
 import AddSubscriptionModal from "../subscriptions/components/AddSubscriptionModal";
+import ExpenseCard from "../subscriptions/components/ExpenseCard";
 
 const ListPage: React.FC = () => {
   const subscriptions = useSubStore((state) => state.subscriptions);
@@ -91,20 +92,33 @@ const ListPage: React.FC = () => {
 
   return (
     <IonPage>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>Aboneliklerim</IonTitle>
-        </IonToolbar>
-
-        <IonToolbar className="ion-padding-start">
-          <IonText color="medium">
-            <p>Toplam Aylık Gider (₺):</p>
-          </IonText>
-          <IonTitle size="large">{totalExpense.toFixed(2)} ₺</IonTitle>
+      <IonHeader className="ion-no-border">
+        <IonToolbar style={{ "--background": "transparent" } as any}>
+          <IonTitle
+            style={{ fontWeight: "800", fontSize: "24px", color: "#333" }}
+          >
+            Tally
+          </IonTitle>
         </IonToolbar>
       </IonHeader>
 
       <IonContent fullscreen>
+        <ExpenseCard totalExpense={totalExpense} />
+        <div
+          style={{
+            padding: "0 20px 10px 20px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "end",
+          }}
+        >
+          <h3 style={{ margin: 0, fontWeight: "700", color: "#444" }}>
+            Ödemelerim
+          </h3>
+          <span style={{ fontSize: "12px", color: "#888" }}>
+            {subscriptions.length} adet
+          </span>
+        </div>
         <IonList>
           {subscriptions.length === 0 ? (
             <div
