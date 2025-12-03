@@ -21,7 +21,7 @@ interface SubState {
   // Aksiyonlar (CRUD)
   addSubscription: (sub: Omit<Subscription, "id" | "isActive">) => void;
   removeSubscription: (id: string) => void;
-  updateSubscription: (id: string, updates: Partial<Subscription>) => void;
+  updateSubscription: (id: string, updatedData: Partial<Subscription>) => void;
   // Diğer metotlar (getTotalMonthlyExpenseTRY)
   getTotalMonthlyExpenseTRY: () => number;
 }
@@ -53,13 +53,12 @@ export const useSubStore = create<SubState>()(
       },
 
       // 3. UPDATE (Güncelleme Aksiyonu)
-      updateSubscription: (id, updates) => {
+      updateSubscription: (id, updatedData) =>
         set((state) => ({
           subscriptions: state.subscriptions.map((sub) =>
-            sub.id === id ? { ...sub, ...updates } : sub
+            sub.id === id ? { ...sub, ...updatedData } : sub
           ),
-        }));
-      },
+        })),
 
       // Toplam Gider Hesaplama (Şimdilik sabit kur üzerinden)
       getTotalMonthlyExpenseTRY: () => {

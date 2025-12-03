@@ -36,13 +36,27 @@ const ListPage: React.FC = () => {
   const getTotalMonthlyExpenseTRY = useSubStore(
     (state) => state.getTotalMonthlyExpenseTRY
   );
+  const removeSubscription = useSubStore((state) => state.removeSubscription);
 
   const [showModal, setShowModal] = useState(false);
+  const [selectedSub, setSelectedSub] = useState<any>(null);
   const [showTip, setShowTip] = useState(false);
 
-  const totalExpense = getTotalMonthlyExpenseTRY();
-  const removeSubscription = useSubStore((state) => state.removeSubscription);
   const [presentAlert] = useIonAlert();
+  const totalExpense = getTotalMonthlyExpenseTRY();
+
+  const openEditModal = (sub: any) => {
+    setSelectedSub(sub);
+    setShowModal(true);
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
+    setTimeout(() => {
+      setSelectedSub(null);
+    }, 200);
+  };
+
   const handleDeleteClick = (id: string) => {
     presentAlert({
       header: "Silmek İstediğine Emin misin?",
@@ -54,9 +68,9 @@ const ListPage: React.FC = () => {
         },
         {
           text: "Sil",
-          role: "destructive", // Kırmızı renkli buton
+          role: "destructive",
           handler: () => {
-            removeSubscription(id); // Onay verilirse sil
+            removeSubscription(id);
           },
         },
       ],
@@ -74,22 +88,6 @@ const ListPage: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [subscriptions.length]);
-  <IonToast
-    isOpen={showTip}
-    onDidDismiss={() => setShowTip(false)}
-    message="💡 İpucu: Düzenlemek veya silmek için aboneliği sola kaydırın."
-    duration={40000} // 4 saniye ekranda kalsın
-    position="bottom"
-    buttons={[
-      {
-        text: "Tamam",
-        role: "cancel",
-        handler: () => {
-          console.log("İpucu kapatıldı");
-        },
-      },
-    ]}
-  />;
 
   return (
     <IonPage>
@@ -109,7 +107,6 @@ const ListPage: React.FC = () => {
       <IonContent fullscreen>
         <IonList>
           {subscriptions.length === 0 ? (
-            // Boş Durum (Empty State)
             <div
               style={{
                 padding: "50px 20px",
@@ -125,27 +122,16 @@ const ListPage: React.FC = () => {
               <p>Sağ alttaki + butonuna basarak ilk aboneliğini ekle.</p>
             </div>
           ) : (
-            // --- LİSTELEME DÖNGÜSÜ BURADA BAŞLIYOR ---
             subscriptions.map((sub: any) => {
-              // 1. ÖNCE config'i bu abonelik (sub) için çekiyoruz
               const config = getPlatformConfig(sub.platform || "custom");
-
-              // 2. SONRA o config'in içindeki ikonu bir değişkene atıyoruz
               const IconComponent = config.icon;
-
-              // --- TARİH KONTROL MANTIĞI ---
               const billDate = new Date(sub.firstBillDate);
               const now = new Date();
-
-              // Bu işlem BU AY içinde mi?
               const isThisMonth =
                 billDate.getMonth() === now.getMonth() &&
                 billDate.getFullYear() === now.getFullYear();
-
-              // Bu işlem GEÇMİŞTE mi kalmış? (Bu ay değil ve tarihi bugünden küçük)
               const isPast = billDate < now && !isThisMonth;
 
-              // --- ETİKET METNİ OLUŞTURMA ---
               let subDescription = "";
 
               if (sub.billingPeriod === "onetime") {
@@ -154,35 +140,32 @@ const ListPage: React.FC = () => {
                     "tr-TR"
                   )}`;
                 } else if (isPast) {
-                  // YENİ: Geçmiş olduğunu belirtiyoruz
                   subDescription = `⚠️ Geçmiş Harcama • ${billDate.toLocaleDateString(
                     "tr-TR"
                   )}`;
                 } else {
-                  // Gelecek harcama
                   subDescription = `📅 Planlanan • ${billDate.toLocaleDateString(
                     "tr-TR"
                   )}`;
                 }
               } else {
-                // Normal Abonelik (Aylık/Yıllık)
                 subDescription = `${
                   sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"
                 } • İlk Ödeme: ${billDate.toLocaleDateString("tr-TR")}`;
               }
 
-              // --- RENK AYARLAMA ---
-              // Geçmiş harcamaları biraz soluk gösterelim
-              const itemColor =
-                sub.billingPeriod === "onetime" && isPast ? "medium" : "";
               return (
                 <IonItemSliding key={sub.id}>
-                  <IonItem key={sub.id} detail={true} button lines="full">
-                    {/* İkon Alanı */}
+                  <IonItem
+                    key={sub.id}
+                    lines="full"
+                    button
+                    onClick={() => openEditModal(sub)}
+                  >
                     <div
                       slot="start"
                       style={{
-                        backgroundColor: config.color + "20", // Rengin şeffaf hali
+                        backgroundColor: config.color + "20",
                         color: config.color,
                         width: 48,
                         height: 48,
@@ -192,9 +175,9 @@ const ListPage: React.FC = () => {
                         justifyContent: "center",
                         fontSize: "24px",
                         marginRight: "12px",
+                        opacity: isPast ? 0.5 : 1,
                       }}
                     >
-                      {/* İkonu burada 'Render' ediyoruz */}
                       <IconComponent />
                     </div>
 
@@ -244,20 +227,28 @@ const ListPage: React.FC = () => {
                 </IonItemSliding>
               );
             })
-            // --- DÖNGÜ BİTİŞİ ---
           )}
         </IonList>
 
+        {/* --- Ekleme Butonu --- */}
+        {/* ÖNEMLİ: Tıklayınca seçili veriyi sıfırlıyoruz ki temiz form gelsin */}
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
-          <IonFabButton onClick={() => setShowModal(true)} color="success">
+          <IonFabButton
+            onClick={() => {
+              setSelectedSub(null);
+              setShowModal(true);
+            }}
+            color="success"
+          >
             <IonIcon icon={add} />
           </IonFabButton>
         </IonFab>
 
+        {/* --- İpucu Toast --- */}
         <IonToast
           isOpen={showTip}
           onDidDismiss={() => setShowTip(false)}
-          message="💡 İpucu: Silmek için öğeyi sola kaydırın."
+          message="💡 İpucu: Düzenlemek veya silmek için aboneliği sola kaydırın."
           duration={3000}
           position="bottom"
           icon={informationCircle}
@@ -266,12 +257,19 @@ const ListPage: React.FC = () => {
             {
               text: "Tamam",
               role: "cancel",
+              handler: () => {
+                console.log("İpucu kapatıldı");
+              },
             },
           ]}
         />
 
-        <IonModal isOpen={showModal} onDidDismiss={() => setShowModal(false)}>
-          <AddSubscriptionModal dismissModal={() => setShowModal(false)} />
+        {/* --- Tek ve Doğru Modal --- */}
+        <IonModal isOpen={showModal} onDidDismiss={handleCloseModal}>
+          <AddSubscriptionModal
+            dismissModal={handleCloseModal}
+            editingSubscription={selectedSub}
+          />
         </IonModal>
       </IonContent>
     </IonPage>

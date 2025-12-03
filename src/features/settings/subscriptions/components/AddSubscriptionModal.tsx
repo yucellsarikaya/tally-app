@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   IonModal,
   IonHeader,
@@ -29,7 +29,10 @@ const initialFormData = {
   billingPeriod: "monthly" as Subscription["billingPeriod"],
   firstBillDate: new Date().toISOString(),
 };
-
+interface AddSubscriptionModalProps {
+  dismissModal: () => void;
+  editingSubscription?: any; // YENİ: Düzenlenecek veri (opsiyonel)
+}
 type FormData = typeof initialFormData; // Form verilerinin tipini otomatik çıkar
 
 interface AddSubscriptionModalProps {
@@ -38,13 +41,46 @@ interface AddSubscriptionModalProps {
 
 const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   dismissModal,
+  editingSubscription,
 }) => {
-  const [formData, setFormData] = useState<FormData>(initialFormData);
   const addSubscription = useSubStore((state) => state.addSubscription);
+  const updateSubscription = useSubStore((state) => state.updateSubscription);
 
-  // ----------------------------------------------------
-  // 2. Platform değişimini ve isim otomatik doldurmayı yöneten yeni fonksiyon
-  // ----------------------------------------------------
+  const [formData, setFormData] = useState({
+    name: "",
+    platform: "custom",
+    price: "",
+    currency: "TRY",
+    billingPeriod: "monthly",
+    firstBillDate: new Date().toISOString(),
+    isActive: true,
+  });
+
+  useEffect(() => {
+    if (editingSubscription) {
+      setFormData({
+        name: editingSubscription.name,
+        platform: editingSubscription.platform,
+        price: editingSubscription.price.toString(),
+        currency: editingSubscription.currency,
+        billingPeriod: editingSubscription.billingPeriod,
+        firstBillDate: editingSubscription.firstBillDate,
+        isActive: editingSubscription.isActive,
+      });
+    } else {
+      // Ekleme modu için varsayılanlar
+      setFormData({
+        name: "",
+        platform: "custom",
+        price: "",
+        currency: "TRY",
+        billingPeriod: "monthly",
+        firstBillDate: new Date().toISOString(),
+        isActive: true,
+      });
+    }
+  }, [editingSubscription]); // editingSubscription değişince çalışır
+
   const handlePlatformChange = (platformId: string) => {
     const config = PLATFORMS[platformId];
 
@@ -67,20 +103,35 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
   };
 
   const handleSave = () => {
-    // Doğrulama: İsim ve Fiyat kontrolü
-    if (!formData.name || formData.price <= 0) {
-      alert("Lütfen geçerli bir isim ve fiyat girin.");
+    if (!formData.name || !formData.price) {
+      alert("Lütfen isim ve fiyat giriniz.");
       return;
     }
 
-    // Veriyi göndermeden önce fiyatı sayıya çevirdiğimizden emin olalım
-    const dataToSend = {
-      ...formData,
-      price: parseFloat(formData.price.toString()),
-    };
+    if (editingSubscription) {
+      // --- GÜNCELLEME MANTIĞI ---
+      updateSubscription(editingSubscription.id, {
+        name: formData.name,
+        platform: formData.platform,
+        price: parseFloat(formData.price),
+        currency: formData.currency as any,
+        billingPeriod: formData.billingPeriod as any,
+        firstBillDate: formData.firstBillDate,
+        isActive: formData.isActive,
+      });
+    } else {
+      // --- EKLEME MANTIĞI ---
+      const newSub = {
+        id: crypto.randomUUID(),
+        ...formData,
+        price: parseFloat(formData.price),
+        currency: formData.currency as any,
+        billingPeriod: formData.billingPeriod as any,
+        isActive: true,
+      };
+      addSubscription(newSub);
+    }
 
-    addSubscription(dataToSend);
-    setFormData(initialFormData);
     dismissModal();
   };
 
@@ -88,7 +139,9 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
     <IonModal isOpen={true} onDidDismiss={dismissModal}>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Yeni Abonelik Ekle</IonTitle>
+          <IonTitle>
+            {editingSubscription ? "Ödeme Güncelle" : "Ödeme Ekle"}{" "}
+          </IonTitle>
           <IonButtons slot="end">
             <IonButton onClick={dismissModal} color="danger">
               Kapat
@@ -116,7 +169,7 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
           {/* 4. ABONELİK ADI (Platform seçimine göre otomatik dolar) */}
           <IonItem>
-            <IonLabel position="stacked">Abonelik Adı</IonLabel>
+            <IonLabel position="stacked">Ödeme Adı</IonLabel>
             <IonInput
               value={formData.name}
               onIonChange={(e) => handleChange("name", e.detail.value!)}
@@ -176,8 +229,12 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
         </IonList>
 
         <div className="ion-padding-top">
-          <IonButton expand="block" onClick={handleSave} color="success">
-            Aboneliği Kaydet
+          <IonButton
+            expand="block"
+            className="ion-margin-top"
+            onClick={handleSave}
+          >
+            {editingSubscription ? "Güncelle" : "Kaydet"}
           </IonButton>
         </div>
       </IonContent>

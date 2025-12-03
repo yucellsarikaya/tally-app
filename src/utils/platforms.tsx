@@ -24,6 +24,12 @@ export interface PlatformConfig {
 }
 
 export const PLATFORMS: Record<string, PlatformConfig> = {
+  custom: {
+    id: "custom",
+    name: "Diğer (Özel)",
+    color: "#666666",
+    icon: DefaultIcon,
+  },
   netflix: {
     id: "netflix",
     name: "Netflix",
@@ -54,12 +60,6 @@ export const PLATFORMS: Record<string, PlatformConfig> = {
     name: "Adobe Creative Cloud",
     color: "#FF0000",
     icon: SiAdobe,
-  },
-  custom: {
-    id: "custom",
-    name: "Diğer (Özel)",
-    color: "#666666",
-    icon: DefaultIcon,
   },
   steam: { id: "steam", name: "Steam", color: "#000000", icon: SiSteam },
   xbox: { id: "xbox", name: "Xbox Game Pass", color: "#107C10", icon: SiBox },
