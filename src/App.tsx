@@ -48,49 +48,37 @@ const App: React.FC = () => {
             <Route exact path="/">
               <Redirect to="/home" />
             </Route>
-            {/* ---------------------------------------------------- */}
           </IonRouterOutlet>
 
-          {/* --- CUSTOM TAB BAR ENTEGRASYONU --- */}
           <IonTabBar
             slot="bottom"
-            // CSS Değişkenleri için as any kullanıyoruz.
             style={
               {
-                // ... diğer stiller ...
-
-                // YENİ EKLEME: Varsayılan çizgiyi kaldırır
                 "--border": "none",
 
                 "--background": "#1f1f1f",
                 "--color-selected": "#00ffc8",
                 "--color": "#888888",
-
-                // String stillerini koruyalım
                 "border-top": "none",
                 "box-shadow": "0 -5px 15px rgba(0,0,0,0.3)",
               } as any
             }
           >
-            {/* 1. Abonelikler Sekmesi (Home) */}
             <IonTabButton tab="home" href="/home">
               <IonIcon icon={home} />
               <IonLabel>Abonelikler</IonLabel>
             </IonTabButton>
 
-            {/* 2. Analiz Sekmesi */}
             <IonTabButton tab="analytics" href="/analytics">
               <IonIcon icon={statsChart} />
               <IonLabel>Analiz</IonLabel>
             </IonTabButton>
 
-            {/* 3. Ayarlar Sekmesi */}
             <IonTabButton tab="settings" href="/settings">
               <IonIcon icon={settings} />
               <IonLabel>Ayarlar</IonLabel>
             </IonTabButton>
           </IonTabBar>
-          {/* ------------------------------------- */}
         </IonTabs>
       </IonReactRouter>
     </IonApp>
