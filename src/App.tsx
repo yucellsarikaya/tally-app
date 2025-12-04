@@ -3,10 +3,10 @@ import { Redirect, Route } from "react-router-dom";
 import {
   IonApp,
   IonRouterOutlet,
-  IonTabBar, // Zaten mevcuttu
-  IonTabButton, // Zaten mevcuttu
-  IonIcon, // Zaten mevcuttu
-  IonLabel, // Zaten mevcuttu
+  IonTabBar,
+  IonTabButton,
+  IonIcon,
+  IonLabel,
   IonTabs,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
@@ -16,7 +16,6 @@ import { useThemeStore } from "./features/settings/store/themeStore";
 import SettingsPage from "./features/settings/pages/SettingsPage";
 import ListPage from "./features/settings/pages/ListPage";
 import AnalyticsPage from "./features/settings/pages/AnalyticsPage";
-// import CustomTabBar from "./features/settings/subscriptions/components/CustomTabBar"; // <-- BU İMPORTU SİL
 
 const App: React.FC = () => {
   const { theme } = useThemeStore();

@@ -132,14 +132,11 @@ const ListPage: React.FC = () => {
                 justifyContent: "center",
               }}
             >
-              {/* İlgili ve Büyük İkon */}
               <IonIcon
-                icon={pricetagOutline} // Fiyat etiketi/Takip ikonu
-                // Orta tonlu renk, dikkat dağıtmasın
+                icon={pricetagOutline}
                 style={{ fontSize: "96px", color: "var(--ion-color-medium)" }}
               />
 
-              {/* Başlık */}
               <h3
                 style={{
                   margin: "16px 0 8px 0",
@@ -150,7 +147,6 @@ const ListPage: React.FC = () => {
                 Henüz Hiç Abonelik Kaydı Yok
               </h3>
 
-              {/* Yönlendirme Metni */}
               <p
                 style={{
                   margin: 0,
@@ -162,10 +158,9 @@ const ListPage: React.FC = () => {
                 başlamak için aşağıdaki yeşil **+** butonuna dokun.
               </p>
 
-              {/* Görsel Yönlendirme İpucu */}
               <IonIcon
                 icon={add}
-                color="success" // FAB butonuyla aynı renk
+                color="success"
                 style={{ fontSize: "32px", marginTop: "30px", opacity: 0.6 }}
               />
             </div>

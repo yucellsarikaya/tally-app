@@ -8,34 +8,50 @@ import {
   IonSegment,
   IonSegmentButton,
   IonLabel,
-  IonText,
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
 } from "@ionic/react";
-import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  ResponsiveContainer,
-} from "recharts";
 
-const mockSpendingData = [
-  { month: "Ocak", gider: 4500 },
-  { month: "Şubat", gider: 4800 },
-  { month: "Mart", gider: 5200 },
-  { month: "Nisan", gider: 4600 },
-  { month: "Mayıs", gider: 4100 },
+import { useSubStore } from "../subscriptions/store/subscriptionStore";
+import MonthlyBarChart from "./components/MonthlyBarChart";
+import CategoryPieChart from "./components/CategoryPieChart";
+
+const COLORS = [
+  "#7C3AED",
+  "#4F46E5",
+  "#00ffc8",
+  "#FF8042",
+  "#FFBB28",
+  "#00C49F",
 ];
 
 const AnalyticsPage: React.FC = () => {
+  const subscriptions = useSubStore((state) => state.subscriptions);
   const [segmentValue, setSegmentValue] = React.useState<
     "monthly" | "category"
   >("monthly");
+
+  const getCategoryData = () => {
+    const categoryMap = subscriptions.reduce((acc, sub) => {
+      if (!sub.isActive || sub.billingPeriod === "onetime") return acc;
+
+      const category = sub.name;
+      let monthlyCost = sub.price;
+
+      if (sub.billingPeriod === "yearly") {
+        monthlyCost = sub.price / 12;
+      }
+
+      acc[category] = (acc[category] || 0) + monthlyCost;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return Object.keys(categoryMap).map((category, index) => ({
+      name: category,
+      value: parseFloat(categoryMap[category].toFixed(2)),
+      color: COLORS[index % COLORS.length],
+    }));
+  };
+
+  const categoryData = getCategoryData();
 
   return (
     <IonPage>
@@ -60,55 +76,16 @@ const AnalyticsPage: React.FC = () => {
         </IonToolbar>
       </IonHeader>
 
-      <IonContent fullscreen className="ion-padding">
-        {segmentValue === "monthly" && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle>Son 5 Ayın Gider Trendi (₺)</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <div style={{ width: "100%", height: 300 }}>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={mockSpendingData}
-                    margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#ccc" />
-                    <XAxis dataKey="month" stroke="#666" />
-                    <YAxis stroke="#666" />
-                    <Tooltip
-                      formatter={(value) => {
-                        if (typeof value === "number") {
-                          return [`₺ ${value.toFixed(2)}`, "Gider"];
-                        }
-                        return [value, "Gider"];
-                      }}
-                      contentStyle={{
-                        backgroundColor: "#2e2e2e",
-                        border: "none",
-                      }}
-                    />
-                    <Bar dataKey="gider" fill="#82ca9d" radius={[5, 5, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </IonCardContent>
-          </IonCard>
-        )}
+      <IonContent
+        fullscreen
+        className="ion-padding"
+        style={{ "--background": "#f5f5f5" } as any}
+      >
+        {/* YENİ BİLEŞEN ÇAĞRILARI */}
+        {segmentValue === "monthly" && <MonthlyBarChart />}
+
         {segmentValue === "category" && (
-          <IonCard>
-            <IonCardHeader>
-              <IonCardTitle>Kategori Dağılımı</IonCardTitle>
-            </IonCardHeader>
-            <IonCardContent>
-              <IonText color="medium">
-                <p>
-                  Bu alana ileride Eğlence, Yazılım, Faydalı Hizmetler gibi
-                  kategorilere ayrılmış Pastayı (Pie Chart) ekleyeceğiz.
-                </p>
-              </IonText>
-            </IonCardContent>
-          </IonCard>
+          <CategoryPieChart categoryData={categoryData} />
         )}
       </IonContent>
     </IonPage>

@@ -18,6 +18,7 @@ interface SubscriptionStore {
   removeSubscription: (id: string) => void;
   updateSubscription: (id: string, updatedData: Partial<Subscription>) => void;
   getTotalMonthlyExpenseTRY: () => number;
+  getTotalExpenseForMonth: (month: number, year: number) => number;
 }
 
 export const useSubStore = create<SubscriptionStore>()(
@@ -80,7 +81,53 @@ export const useSubStore = create<SubscriptionStore>()(
           return total + costToAdd;
         }, 0);
       },
+      getTotalExpenseForMonth: (targetMonth: number, targetYear: number) => {
+        const MOCK_USD_TO_TRY = 32.5;
+        const MOCK_EUR_TO_TRY = 35.0;
+
+        return get().subscriptions.reduce((total, sub) => {
+          if (!sub.isActive) return total;
+
+          let costToAdd = 0;
+
+          if (sub.billingPeriod === "onetime") {
+            const billDate = new Date(sub.firstBillDate);
+            if (
+              billDate.getMonth() === targetMonth &&
+              billDate.getFullYear() === targetYear
+            ) {
+              costToAdd = sub.price;
+            } else {
+              return total;
+            }
+          } else {
+            const billDate = new Date(sub.firstBillDate);
+            if (
+              billDate.getFullYear() < targetYear ||
+              (billDate.getFullYear() === targetYear &&
+                billDate.getMonth() <= targetMonth)
+            ) {
+              costToAdd = sub.price;
+              if (sub.billingPeriod === "yearly") {
+                costToAdd = sub.price / 12;
+              }
+            } else {
+              return total;
+            }
+          }
+
+          if (sub.currency === "USD") {
+            return total + costToAdd * MOCK_USD_TO_TRY;
+          }
+          if (sub.currency === "EUR") {
+            return total + costToAdd * MOCK_EUR_TO_TRY;
+          }
+
+          return total + costToAdd;
+        }, 0);
+      },
     }),
+
     {
       name: "tally-storage",
     }
