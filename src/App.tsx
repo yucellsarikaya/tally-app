@@ -8,9 +8,11 @@ import {
   IonIcon,
   IonLabel,
   IonTabs,
+  IonHeader,
+  IonToolbar,
 } from "@ionic/react";
 import { IonReactRouter } from "@ionic/react-router";
-import { home, statsChart, settings } from "ionicons/icons";
+import { home, statsChart, settings, wallet } from "ionicons/icons";
 import { App as CapacitorApp } from "@capacitor/app";
 import { useThemeStore } from "./features/settings/store/themeStore";
 import SettingsPage from "./features/settings/pages/SettingsPage";
@@ -19,6 +21,7 @@ import AnalyticsPage from "./features/settings/pages/AnalyticsPage";
 
 const App: React.FC = () => {
   const { theme } = useThemeStore();
+
   useEffect(() => {
     CapacitorApp.addListener("backButton", ({ canGoBack }) => {
       if (!canGoBack) {
@@ -32,6 +35,76 @@ const App: React.FC = () => {
   return (
     <IonApp className={`theme-${theme}`}>
       <IonReactRouter>
+        {/* GLOBAL HEADER */}
+        {/* z-index: 10 vererek içeriğin üstünde kalmasını garantiliyoruz */}
+        <IonHeader className="ion-no-border" style={{ zIndex: 10 }}>
+          <IonToolbar
+            style={
+              {
+                "--background": "#ffffff",
+                paddingTop: "env(safe-area-inset-top)",
+                paddingBottom: "5px",
+                display: "flex",
+                alignItems: "center",
+              } as any
+            }
+          >
+            <div
+              style={{
+                paddingLeft: "20px",
+                paddingRight: "20px",
+                paddingTop: "10px",
+                paddingBottom: "5px",
+                display: "flex",
+                alignItems: "center",
+                gap: "10px",
+              }}
+            >
+              <div
+                style={{
+                  backgroundColor: "#00ffc8",
+                  borderRadius: "10px",
+                  width: "36px",
+                  height: "36px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  boxShadow: "0 4px 10px rgba(0, 255, 200, 0.3)",
+                }}
+              >
+                <IonIcon
+                  icon={wallet}
+                  style={{ color: "#1f1f1f", fontSize: "20px" }}
+                />
+              </div>
+
+              <h1
+                style={{
+                  margin: 0,
+                  fontSize: "28px",
+                  fontWeight: "800",
+                  letterSpacing: "-1px",
+                  color: "#1f1f1f",
+                  lineHeight: "1",
+                  display: "flex",
+                  alignItems: "baseline",
+                }}
+              >
+                Tally
+                <span
+                  style={{
+                    color: "#00ffc8",
+                    fontSize: "34px",
+                    marginLeft: "2px",
+                  }}
+                >
+                  .
+                </span>
+              </h1>
+            </div>
+          </IonToolbar>
+        </IonHeader>
+
         <IonTabs>
           <IonRouterOutlet>
             <Route exact path="/home">
@@ -48,33 +121,78 @@ const App: React.FC = () => {
             </Route>
           </IonRouterOutlet>
 
+          {/* GLOBAL FOOTER */}
           <IonTabBar
             slot="bottom"
             style={
               {
                 "--border": "none",
-
-                "--background": "#1f1f1f",
-                "--color-selected": "#00ffc8",
-                "--color": "#888888",
-                "border-top": "none",
-                "box-shadow": "0 -5px 15px rgba(0,0,0,0.3)",
+                "--background": "#ffffff",
+                backgroundColor: "#ffffff", // Tarayıcı stilini zorla
+                borderTop: "1px solid #f0f0f0",
+                paddingTop: "8px",
+                paddingBottom: "env(safe-area-inset-bottom)",
+                height: "auto", // Yüksekliği içeriğe göre ayarla
+                minHeight: "60px",
               } as any
             }
           >
-            <IonTabButton tab="home" href="/home">
-              <IonIcon icon={home} />
-              <IonLabel>Abonelikler</IonLabel>
+            {/* Butonların arka planını şeffaf yapıyoruz ki siyah blok oluşmasın */}
+            <IonTabButton
+              tab="home"
+              href="/home"
+              style={
+                {
+                  "--background": "transparent",
+                  backgroundColor: "transparent",
+                } as any
+              }
+            >
+              <IonIcon
+                icon={home}
+                style={{ fontSize: "24px", marginBottom: "4px" }}
+              />
+              <IonLabel style={{ fontSize: "11px", fontWeight: "500" }}>
+                Abonelikler
+              </IonLabel>
             </IonTabButton>
 
-            <IonTabButton tab="analytics" href="/analytics">
-              <IonIcon icon={statsChart} />
-              <IonLabel>Analiz</IonLabel>
+            <IonTabButton
+              tab="analytics"
+              href="/analytics"
+              style={
+                {
+                  "--background": "transparent",
+                  backgroundColor: "transparent",
+                } as any
+              }
+            >
+              <IonIcon
+                icon={statsChart}
+                style={{ fontSize: "24px", marginBottom: "4px" }}
+              />
+              <IonLabel style={{ fontSize: "11px", fontWeight: "500" }}>
+                Analiz
+              </IonLabel>
             </IonTabButton>
 
-            <IonTabButton tab="settings" href="/settings">
-              <IonIcon icon={settings} />
-              <IonLabel>Ayarlar</IonLabel>
+            <IonTabButton
+              tab="settings"
+              href="/settings"
+              style={
+                {
+                  "--background": "transparent",
+                  backgroundColor: "transparent",
+                } as any
+              }
+            >
+              <IonIcon
+                icon={settings}
+                style={{ fontSize: "24px", marginBottom: "4px" }}
+              />
+              <IonLabel style={{ fontSize: "11px", fontWeight: "500" }}>
+                Ayarlar
+              </IonLabel>
             </IonTabButton>
           </IonTabBar>
         </IonTabs>

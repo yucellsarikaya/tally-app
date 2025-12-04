@@ -174,6 +174,7 @@ const ListPage: React.FC = () => {
   };
   return (
     <IonPage>
+      {/* TODO İlgilenecek burayayla arkada kalıyor */}
       <IonHeader className="ion-no-border">
         <IonToolbar style={{ "--background": "transparent" } as any}>
           <IonTitle
