@@ -214,7 +214,7 @@ const ListPage: React.FC = () => {
             {subscriptions.length} adet
           </span>
         </div>
-        <IonList>
+        <IonList style={{ paddingBottom: "100px" }}>
           {subscriptions.length === 0 ? (
             <div
               style={{

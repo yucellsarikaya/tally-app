@@ -1,11 +1,5 @@
 import React from "react";
 import {
-  IonCard,
-  IonCardHeader,
-  IonCardTitle,
-  IonCardContent,
-} from "@ionic/react";
-import {
   BarChart,
   Bar,
   XAxis,
@@ -21,19 +15,36 @@ const CustomTooltip = ({ active, payload, label }: any) => {
     return (
       <div
         style={{
-          backgroundColor: "white",
-          border: "1px solid #ddd",
-          padding: "10px",
-          color: "#333",
-          borderRadius: "5px",
-          boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+          backgroundColor: "rgba(30, 30, 30, 0.95)",
+          padding: "12px 16px",
+          borderRadius: "12px",
+          boxShadow: "0 4px 15px rgba(0,0,0,0.15)",
+          border: "none",
+          textAlign: "center",
+          minWidth: "100px",
         }}
       >
-        <p className="label">{`${label}`}</p>
         <p
-          className="intro"
-          style={{ color: "#7C3AED" }}
-        >{`Gider : ₺${payload[0].value.toFixed(2)}`}</p>
+          style={{
+            margin: 0,
+            fontSize: "12px",
+            color: "#aaa",
+            fontWeight: "600",
+            marginBottom: "4px",
+          }}
+        >
+          {label}
+        </p>
+        <p
+          style={{
+            margin: 0,
+            fontSize: "16px",
+            fontWeight: "bold",
+            color: "#ffffff",
+          }}
+        >
+          ₺{payload[0].value.toFixed(2)}
+        </p>
       </div>
     );
   }
@@ -42,18 +53,18 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 
 const getLastFiveMonths = () => {
   const months = [
-    "Ocak",
-    "Şubat",
-    "Mart",
-    "Nisan",
-    "Mayıs",
-    "Haziran",
-    "Temmuz",
-    "Ağustos",
-    "Eylül",
-    "Ekim",
-    "Kasım",
-    "Aralık",
+    "Oca",
+    "Şub",
+    "Mar",
+    "Nis",
+    "May",
+    "Haz",
+    "Tem",
+    "Ağu",
+    "Eyl",
+    "Eki",
+    "Kas",
+    "Ara",
   ];
   const date = new Date();
   const currentMonthIndex = date.getMonth();
@@ -93,43 +104,61 @@ const MonthlyBarChart: React.FC = () => {
     (state) => state.getTotalExpenseForMonth
   );
   const subscriptions = useSubStore((state) => state.subscriptions);
+
   const spendingData = React.useMemo(() => {
     return getTrendData(getTotalExpenseForMonth);
   }, [getTotalExpenseForMonth, subscriptions]);
 
-  const currentTotal = spendingData[4]?.gider || 0;
-  const hasSpending = currentTotal > 0 || spendingData.some((d) => d.gider > 0);
-
   return (
-    <IonCard style={{ "--background": "#ffffff", color: "#333" }}>
-      <IonCardHeader>
-        <IonCardTitle>Son 5 Ayın Gider Trendi (₺)</IonCardTitle>{" "}
-        {/* Simülasyon etiketi kaldırıldı */}
-      </IonCardHeader>
-      <IonCardContent>
-        {/* Veri Kontrolü */}
-        {!hasSpending ? (
-          <p style={{ textAlign: "center", color: "#666" }}>
-            Hiç abonelik gideri bulunamadı. Lütfen abonelik ekleyin.
-          </p>
-        ) : (
-          <div style={{ width: "100%", height: 300 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart
-                data={spendingData}
-                margin={{ top: 5, right: 20, left: 10, bottom: 5 }}
-              >
-                <CartesianGrid strokeDasharray="3 3" stroke="#e0e0e0" />
-                <XAxis dataKey="month" stroke="#333" />
-                <YAxis stroke="#333" />
-                <Tooltip content={<CustomTooltip />} />
-                <Bar dataKey="gider" fill="#7C3AED" radius={[5, 5, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </IonCardContent>
-    </IonCard>
+    <div style={{ width: "100%", height: "300px", marginTop: "10px" }}>
+      <ResponsiveContainer width="100%" height="100%">
+        <BarChart
+          data={spendingData}
+          margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+          barSize={32}
+        >
+          <defs>
+            <linearGradient id="colorGider" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#7C3AED" stopOpacity={1} />
+              <stop offset="100%" stopColor="#4F46E5" stopOpacity={1} />
+            </linearGradient>
+          </defs>
+
+          <CartesianGrid
+            strokeDasharray="3 3"
+            vertical={false}
+            stroke="#f0f0f0"
+          />
+
+          <XAxis
+            dataKey="month"
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#9ca3af", fontSize: 12, fontWeight: 500 }}
+            dy={10}
+          />
+
+          <YAxis
+            axisLine={false}
+            tickLine={false}
+            tick={{ fill: "#9ca3af", fontSize: 12 }}
+            tickFormatter={(value) => `₺${value}`}
+          />
+
+          <Tooltip
+            content={<CustomTooltip />}
+            cursor={{ fill: "rgba(0,0,0,0.03)", radius: 8 }}
+          />
+
+          <Bar
+            dataKey="gider"
+            fill="url(#colorGider)"
+            radius={[8, 8, 8, 8]}
+            animationDuration={1500}
+          />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
   );
 };
 

@@ -121,23 +121,21 @@ const App: React.FC = () => {
             </Route>
           </IonRouterOutlet>
 
-          {/* GLOBAL FOOTER */}
           <IonTabBar
             slot="bottom"
             style={
               {
                 "--border": "none",
                 "--background": "#ffffff",
-                backgroundColor: "#ffffff", // Tarayıcı stilini zorla
+                backgroundColor: "#ffffff",
                 borderTop: "1px solid #f0f0f0",
                 paddingTop: "8px",
                 paddingBottom: "env(safe-area-inset-bottom)",
-                height: "auto", // Yüksekliği içeriğe göre ayarla
+                height: "auto",
                 minHeight: "60px",
               } as any
             }
           >
-            {/* Butonların arka planını şeffaf yapıyoruz ki siyah blok oluşmasın */}
             <IonTabButton
               tab="home"
               href="/home"

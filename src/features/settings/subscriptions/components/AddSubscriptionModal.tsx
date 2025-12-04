@@ -15,9 +15,10 @@ import {
   IonModal,
   IonIcon,
   IonSearchbar,
-  IonNote,
+  IonDatetime, // Tarih seçici için native hissi
+  IonDatetimeButton,
 } from "@ionic/react";
-import { chevronForward, close } from "ionicons/icons";
+import { chevronForward, calendarOutline, repeatOutline } from "ionicons/icons";
 import { useSubStore } from "../store/subscriptionStore";
 import { PLATFORMS } from "../../../../utils/platforms";
 
@@ -44,6 +45,7 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
     firstBillDate: new Date().toISOString(),
     isActive: true,
   });
+
   useEffect(() => {
     if (editingSubscription) {
       setFormData({
@@ -97,169 +99,307 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
 
   const handlePlatformSelect = (platformKey: string) => {
     const selectedPlatform = PLATFORMS[platformKey];
-
     setFormData({
       ...formData,
       platform: platformKey,
       name:
         selectedPlatform.name === "Diğer (Özel)" ? "" : selectedPlatform.name,
     });
-
     setShowPlatformModal(false);
   };
+
   const currentPlatformConfig =
     PLATFORMS[formData.platform] || PLATFORMS["custom"];
   const CurrentIcon = currentPlatformConfig.icon;
-
   const filteredPlatforms = Object.entries(PLATFORMS).filter(([key, p]) =>
     p.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
     <>
-      <IonHeader>
-        <IonToolbar>
-          <IonTitle>{editingSubscription ? "Düzenle" : "Yeni Ekle"}</IonTitle>
+      {/* HEADER: Sade ve Temiz */}
+      <IonHeader className="ion-no-border">
+        <IonToolbar style={{ "--background": "#f2f2f7" }}>
+          {" "}
+          {/* iOS Gri Arkaplanı */}
           <IonButtons slot="end">
-            <IonButton onClick={dismissModal}>
-              <IonIcon icon={close} />
+            <IonButton
+              onClick={dismissModal}
+              color="primary"
+              style={{ fontWeight: "600" }}
+            >
+              Vazgeç
             </IonButton>
           </IonButtons>
         </IonToolbar>
       </IonHeader>
 
-      <IonContent className="ion-padding">
-        <IonList>
-          <IonItem
-            button
-            detail={true}
-            detailIcon={chevronForward}
-            onClick={() => setShowPlatformModal(true)}
-            className="ion-margin-bottom"
-            lines="full"
+      <IonContent style={{ "--background": "#f2f2f7" }}>
+        <div style={{ padding: "0 20px 20px 20px" }}>
+          {/* BÜYÜK BAŞLIK */}
+          <h1
+            style={{
+              fontSize: "32px",
+              fontWeight: "800",
+              marginTop: "0px",
+              marginBottom: "20px",
+              color: "#1c1c1e",
+            }}
           >
-            <IonLabel position="stacked">Servis / Platform</IonLabel>
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                marginTop: "4px",
-                gap: "5px",
-              }}
-            >
+            {editingSubscription ? "Düzenle" : "Yeni Ödeme Ekle"}
+          </h1>
+
+          {/* 1. KART: PLATFORM SEÇİMİ (Vurgulu Alan) */}
+          <div
+            onClick={() => setShowPlatformModal(true)}
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "16px",
+              padding: "20px",
+              marginBottom: "24px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+              cursor: "pointer",
+            }}
+          >
+            <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <div
                 style={{
+                  width: "56px",
+                  height: "56px",
+                  borderRadius: "14px",
                   backgroundColor: currentPlatformConfig.color + "20",
                   color: currentPlatformConfig.color,
-                  padding: "4px",
-                  borderRadius: "4px",
                   display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "28px",
                 }}
               >
-                <CurrentIcon style={{ fontSize: "10px" }} />
+                <CurrentIcon />
               </div>
-              <IonLabel style={{ fontWeight: "600", fontSize: "16px" }}>
-                {currentPlatformConfig.name}
-              </IonLabel>
+              <div>
+                <div
+                  style={{
+                    fontSize: "13px",
+                    color: "#8e8e93",
+                    fontWeight: "500",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Servis
+                </div>
+                <div
+                  style={{
+                    fontSize: "18px",
+                    fontWeight: "700",
+                    color: "#1c1c1e",
+                  }}
+                >
+                  {currentPlatformConfig.name}
+                </div>
+              </div>
             </div>
-          </IonItem>
+            <IonIcon icon={chevronForward} style={{ color: "#c7c7cc" }} />
+          </div>
 
-          <IonItem>
-            <IonLabel position="stacked">Abonelik Adı</IonLabel>
-            <IonInput
-              value={formData.name}
-              onIonChange={(e) => handleChange("name", e.detail.value!)}
-              placeholder="Örn: Netflix"
-            />
-          </IonItem>
-
-          <IonItem>
-            <IonLabel position="stacked">Fiyat</IonLabel>
-            <div
-              style={{ display: "flex", width: "100%", alignItems: "center" }}
-            >
-              <IonInput
-                type="number"
-                value={formData.price}
-                onIonChange={(e) => handleChange("price", e.detail.value!)}
-                placeholder="0.00"
-              />
-              <IonSelect
-                value={formData.currency}
-                interface="popover"
-                onIonChange={(e) => handleChange("currency", e.detail.value)}
+          {/* 2. GRUP: TEMEL BİLGİLER (İsim ve Fiyat) */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "16px",
+              overflow: "hidden",
+              marginBottom: "24px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+            }}
+          >
+            {/* İsim */}
+            <IonItem lines="full" style={{ "--padding-start": "20px" }}>
+              <IonLabel
+                position="fixed"
+                style={{ fontWeight: "600", color: "#1c1c1e" }}
               >
-                <IonSelectOption value="TRY">TRY</IonSelectOption>
-                <IonSelectOption value="USD">USD</IonSelectOption>
-                <IonSelectOption value="EUR">EUR</IonSelectOption>
+                Ad
+              </IonLabel>
+              <IonInput
+                value={formData.name}
+                placeholder="Örn: Netflix"
+                onIonChange={(e) => handleChange("name", e.detail.value!)}
+                style={{ textAlign: "right", fontWeight: "500" }}
+              />
+            </IonItem>
+
+            {/* Fiyat ve Para Birimi */}
+            <IonItem lines="none" style={{ "--padding-start": "20px" }}>
+              <IonLabel
+                position="fixed"
+                style={{ fontWeight: "600", color: "#1c1c1e" }}
+              >
+                Fiyat
+              </IonLabel>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                  justifyContent: "flex-end",
+                  gap: "10px",
+                }}
+              >
+                <IonInput
+                  type="number"
+                  value={formData.price}
+                  placeholder="0.00"
+                  onIonChange={(e) => handleChange("price", e.detail.value!)}
+                  style={{
+                    textAlign: "right",
+                    fontWeight: "500",
+                    maxWidth: "100px",
+                  }}
+                />
+                <div
+                  style={{
+                    height: "24px",
+                    width: "1px",
+                    backgroundColor: "#e5e5ea",
+                  }}
+                ></div>
+                <IonSelect
+                  value={formData.currency}
+                  interface="popover"
+                  onIonChange={(e) => handleChange("currency", e.detail.value)}
+                  style={{
+                    paddingRight: "0",
+                    fontWeight: "600",
+                    color: "#007aff",
+                  }}
+                >
+                  <IonSelectOption value="TRY">TRY</IonSelectOption>
+                  <IonSelectOption value="USD">USD</IonSelectOption>
+                  <IonSelectOption value="EUR">EUR</IonSelectOption>
+                </IonSelect>
+              </div>
+            </IonItem>
+          </div>
+
+          {/* 3. GRUP: DETAYLAR (Sıklık ve Tarih) */}
+          <div
+            style={{
+              backgroundColor: "#ffffff",
+              borderRadius: "16px",
+              overflow: "hidden",
+              marginBottom: "32px",
+              boxShadow: "0 4px 12px rgba(0,0,0,0.03)",
+            }}
+          >
+            {/* Ödeme Sıklığı */}
+            <IonItem lines="full" style={{ "--padding-start": "20px" }}>
+              <div
+                slot="start"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#8e8e93",
+                }}
+              >
+                <IonIcon icon={repeatOutline} style={{ fontSize: "20px" }} />
+              </div>
+              <IonLabel style={{ fontWeight: "500" }}>Sıklık</IonLabel>
+              <IonSelect
+                value={formData.billingPeriod}
+                interface="action-sheet"
+                onIonChange={(e) =>
+                  handleChange("billingPeriod", e.detail.value)
+                }
+                style={{ fontWeight: "500", color: "#007aff" }}
+              >
+                <IonSelectOption value="monthly">Aylık</IonSelectOption>
+                <IonSelectOption value="yearly">Yıllık</IonSelectOption>
+                <IonSelectOption value="onetime">Tek Seferlik</IonSelectOption>
               </IonSelect>
-            </div>
-          </IonItem>
+            </IonItem>
 
-          <IonItem>
-            <IonLabel position="stacked">Ödeme Sıklığı</IonLabel>
-            <IonSelect
-              value={formData.billingPeriod}
-              interface="action-sheet"
-              onIonChange={(e) => handleChange("billingPeriod", e.detail.value)}
-            >
-              <IonSelectOption value="monthly">Aylık</IonSelectOption>
-              <IonSelectOption value="yearly">Yıllık</IonSelectOption>
-              <IonSelectOption value="onetime">Tek Seferlik</IonSelectOption>
-            </IonSelect>
-          </IonItem>
-          <IonItem>
-            <IonLabel position="stacked">İlk Fatura Tarihi</IonLabel>
-            <IonInput
-              type="date"
-              value={formData.firstBillDate.split("T")[0]}
-              onIonChange={(e) => handleChange("firstBillDate", e.detail.value)}
-            />
-          </IonItem>
-        </IonList>
+            {/* İlk Fatura Tarihi - Native Stil */}
+            <IonItem lines="none" style={{ "--padding-start": "20px" }}>
+              <div
+                slot="start"
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "8px",
+                  color: "#8e8e93",
+                }}
+              >
+                <IonIcon icon={calendarOutline} style={{ fontSize: "20px" }} />
+              </div>
+              <IonLabel style={{ fontWeight: "500" }}>Başlangıç</IonLabel>
+              {/* NOT: IonDatetimeButton ve IonDatetime kullanımı modern yaklaşımdır.
+                    Modal içinde modal açar.
+                */}
+              <IonDatetimeButton datetime="datetime"></IonDatetimeButton>
+              <IonModal keepContentsMounted={true}>
+                <IonDatetime
+                  id="datetime"
+                  presentation="date"
+                  value={formData.firstBillDate}
+                  onIonChange={(e) =>
+                    handleChange("firstBillDate", e.detail.value)
+                  }
+                ></IonDatetime>
+              </IonModal>
+            </IonItem>
+          </div>
 
-        <IonButton
-          expand="block"
-          className="ion-margin-top"
-          onClick={handleSave}
-          color="primary"
-          shape="round"
-        >
-          {editingSubscription ? "Güncelle" : "Kaydet"}
-        </IonButton>
+          {/* KAYDET BUTONU */}
+          <IonButton
+            expand="block"
+            onClick={handleSave}
+            color="primary"
+            style={{
+              height: "56px",
+              fontWeight: "700",
+              fontSize: "18px",
+              "--border-radius": "16px",
+              "--box-shadow": "0 8px 20px rgba(0, 122, 255, 0.3)",
+            }}
+          >
+            {editingSubscription ? "Değişiklikleri Kaydet" : "Aboneliği Ekle"}
+          </IonButton>
+        </div>
       </IonContent>
+
       <IonModal
         isOpen={showPlatformModal}
         onDidDismiss={() => setShowPlatformModal(false)}
         style={{
-          "--height": "70%",
-          "--width": "90%",
-          "--max-width": "400px",
           "--border-radius": "16px",
-          "--box-shadow": "0 10px 15px rgba(0,0,0,0.1)",
         }}
+        presentingElement={undefined}
       >
         <IonHeader>
           <IonToolbar>
-            <IonTitle>Platform Seç</IonTitle>
+            <IonTitle>Servis Seç</IonTitle>
             <IonButtons slot="end">
               <IonButton onClick={() => setShowPlatformModal(false)}>
-                <IonIcon icon={close} />
+                Kapat
               </IonButton>
             </IonButtons>
           </IonToolbar>
           <IonToolbar>
             <IonSearchbar
-              placeholder="Ara..."
               value={searchTerm}
               onIonInput={(e) => setSearchTerm(e.detail.value!)}
-              debounce={300}
+              placeholder="Servis ara..."
+              className="ion-no-padding"
+              style={{ paddingInline: "10px" }}
             />
           </IonToolbar>
         </IonHeader>
-
         <IonContent>
-          <IonList lines="full">
+          <IonList>
             {filteredPlatforms.map(([key, platform]) => {
               const Icon = platform.icon;
               return (
@@ -268,6 +408,7 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                   button
                   detail={false}
                   onClick={() => handlePlatformSelect(key)}
+                  lines="full"
                 >
                   <div
                     slot="start"
@@ -276,7 +417,7 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                       color: platform.color,
                       width: 40,
                       height: 40,
-                      borderRadius: 10,
+                      borderRadius: "10px",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -294,14 +435,6 @@ const AddSubscriptionModal: React.FC<AddSubscriptionModalProps> = ({
                 </IonItem>
               );
             })}
-
-            {filteredPlatforms.length === 0 && (
-              <div
-                style={{ textAlign: "center", padding: "20px", color: "#888" }}
-              >
-                Sonuç bulunamadı.
-              </div>
-            )}
           </IonList>
         </IonContent>
       </IonModal>
