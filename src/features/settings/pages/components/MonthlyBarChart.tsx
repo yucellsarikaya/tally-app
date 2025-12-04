@@ -92,10 +92,10 @@ const MonthlyBarChart: React.FC = () => {
   const getTotalExpenseForMonth = useSubStore(
     (state) => state.getTotalExpenseForMonth
   );
-
+  const subscriptions = useSubStore((state) => state.subscriptions);
   const spendingData = React.useMemo(() => {
     return getTrendData(getTotalExpenseForMonth);
-  }, [getTotalExpenseForMonth]);
+  }, [getTotalExpenseForMonth, subscriptions]);
 
   const currentTotal = spendingData[4]?.gider || 0;
   const hasSpending = currentTotal > 0 || spendingData.some((d) => d.gider > 0);
