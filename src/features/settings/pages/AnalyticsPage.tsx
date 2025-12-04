@@ -38,13 +38,11 @@ const AnalyticsPage: React.FC = () => {
 
       if (sub.billingPeriod === "onetime") {
         const dateString = sub.firstBillDate;
-
         if (dateString) {
           const billDate = new Date(dateString);
           const isThisMonth =
             billDate.getMonth() === currentMonth &&
             billDate.getFullYear() === currentYear;
-
           if (isThisMonth) {
             monthlyCost = sub.price;
           } else {
@@ -72,9 +70,18 @@ const AnalyticsPage: React.FC = () => {
   return (
     <IonPage>
       <IonContent style={{ "--background": "#f2f2f7" }}>
+        {/* 🛠️ DÜZELTME BURADA:
+            paddingTop: "120px" -> Header'ın altında kalmaması için yeterli boşluk.
+            Eğer telefonda hala az gelirse 130px veya 140px yapabilirsiniz.
+        */}
         <div
-          style={{ padding: "20px", paddingBottom: "100px", marginTop: "50px" }}
+          style={{
+            padding: "20px",
+            paddingTop: "120px",
+            paddingBottom: "100px",
+          }}
         >
+          {/* SEGMENT (TAB) ALANI */}
           <div
             style={{
               backgroundColor: "#ffffff",
@@ -105,6 +112,7 @@ const AnalyticsPage: React.FC = () => {
             </IonSegment>
           </div>
 
+          {/* GRAFİK KARTI */}
           <div
             style={{
               backgroundColor: "#ffffff",
@@ -116,7 +124,7 @@ const AnalyticsPage: React.FC = () => {
               flexDirection: "column",
             }}
           >
-            <div style={{ marginBottom: "15px", textAlign: "center" }}>
+            <div style={{ marginBottom: "24px", textAlign: "center" }}>
               <h2
                 style={{
                   margin: 0,
@@ -157,8 +165,10 @@ const AnalyticsPage: React.FC = () => {
                     justifyContent: "center",
                     color: "#999",
                     gap: "10px",
+                    minHeight: "250px",
                   }}
                 >
+                  <div style={{ fontSize: "48px", opacity: 0.5 }}>📊</div>
                   <p>Bu ay için henüz harcama verisi yok.</p>
                 </div>
               )}
