@@ -34,7 +34,6 @@ const App: React.FC = () => {
       <IonReactRouter>
         <IonTabs>
           <IonRouterOutlet>
-            {/* ----------------- ROUTE TANIMLARI ----------------- */}
             <Route exact path="/home">
               <ListPage />
             </Route>

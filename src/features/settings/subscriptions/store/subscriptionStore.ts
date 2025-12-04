@@ -19,6 +19,7 @@ interface SubscriptionStore {
   updateSubscription: (id: string, updatedData: Partial<Subscription>) => void;
   getTotalMonthlyExpenseTRY: () => number;
   getTotalExpenseForMonth: (month: number, year: number) => number;
+  reorderSubscriptions: (from: number, to: number) => void;
 }
 
 export const useSubStore = create<SubscriptionStore>()(
@@ -125,6 +126,14 @@ export const useSubStore = create<SubscriptionStore>()(
 
           return total + costToAdd;
         }, 0);
+      },
+      reorderSubscriptions: (from, to) => {
+        set((state) => {
+          const subscriptions = [...state.subscriptions];
+          const [movedItem] = subscriptions.splice(from, 1);
+          subscriptions.splice(to, 0, movedItem);
+          return { subscriptions };
+        });
       },
     }),
 

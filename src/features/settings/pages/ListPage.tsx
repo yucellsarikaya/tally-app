@@ -12,20 +12,23 @@ import {
   IonFab,
   IonFabButton,
   IonIcon,
-  IonText,
   IonModal,
   useIonAlert,
   IonItemSliding,
   IonItemOptions,
   IonItemOption,
   IonToast,
+  IonReorderGroup,
+  IonReorder,
+  IonButtons,
+  IonButton,
 } from "@ionic/react";
 import {
   add,
-  alertCircleOutline,
   informationCircle,
   pricetagOutline,
   trash,
+  ellipsisVerticalOutline,
 } from "ionicons/icons";
 
 import { getPlatformConfig } from "../../../utils/platforms";
@@ -39,6 +42,11 @@ const ListPage: React.FC = () => {
     (state) => state.getTotalMonthlyExpenseTRY
   );
   const removeSubscription = useSubStore((state) => state.removeSubscription);
+  const reorderSubscriptions = useSubStore(
+    (state) => state.reorderSubscriptions
+  );
+
+  const [isReorderEnabled, setIsReorderEnabled] = useState(false);
 
   const [showModal, setShowModal] = useState(false);
   const [selectedSub, setSelectedSub] = useState<any>(null);
@@ -79,9 +87,14 @@ const ListPage: React.FC = () => {
     });
   };
 
+  const handleReorder = (event: CustomEvent) => {
+    reorderSubscriptions(event.detail.from, event.detail.to);
+    event.detail.complete();
+  };
+
   useEffect(() => {
     const hasSeenTip = localStorage.getItem("hasSeenSwipeTip");
-    if (subscriptions.length > 0 && !hasSeenTip) {
+    if (subscriptions.length > 0 && !hasSeenTip && !isReorderEnabled) {
       const timer = setTimeout(() => {
         setShowTip(true);
         localStorage.setItem("hasSeenSwipeTip", "true");
@@ -89,8 +102,76 @@ const ListPage: React.FC = () => {
 
       return () => clearTimeout(timer);
     }
-  }, [subscriptions.length]);
+  }, [subscriptions.length, isReorderEnabled]);
 
+  const renderItemContent = (
+    sub: any,
+    isPast: boolean,
+    subDescription: string,
+    config: any,
+    IconComponent: any,
+    isThisMonth: boolean
+  ) => {
+    const shouldBeGrayedOut = sub.billingPeriod === "onetime" && isPast;
+
+    return (
+      <>
+        <div
+          slot="start"
+          style={{
+            backgroundColor: config.color + "20",
+            color: config.color,
+            width: 48,
+            height: 48,
+            borderRadius: 12,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "24px",
+            marginRight: "12px",
+            opacity: shouldBeGrayedOut ? 0.5 : 1,
+          }}
+        >
+          <IconComponent />
+        </div>
+
+        <IonLabel>
+          <h2
+            style={{
+              fontWeight: "bold",
+              color: shouldBeGrayedOut ? "#888" : "",
+            }}
+          >
+            {sub.name}
+          </h2>
+          <p
+            style={{
+              color:
+                sub.billingPeriod === "onetime" && isThisMonth
+                  ? "var(--ion-color-success-shade)"
+                  : "",
+            }}
+          >
+            {subDescription}
+          </p>
+        </IonLabel>
+        <IonBadge
+          slot="end"
+          color={
+            !sub.isActive
+              ? "medium"
+              : sub.billingPeriod === "onetime"
+              ? isThisMonth
+                ? "warning"
+                : "medium"
+              : "success"
+          }
+        >
+          {sub.price} {sub.currency}
+        </IonBadge>
+      </>
+    );
+  };
   return (
     <IonPage>
       <IonHeader className="ion-no-border">
@@ -100,6 +181,18 @@ const ListPage: React.FC = () => {
           >
             Tally
           </IonTitle>
+          <IonButtons slot="end">
+            <IonButton
+              onClick={() => setIsReorderEnabled(!isReorderEnabled)}
+              color="dark"
+            >
+              <IonIcon
+                icon={ellipsisVerticalOutline}
+                slot="icon-only"
+                color={isReorderEnabled ? "primary" : "medium"}
+              />
+            </IonButton>
+          </IonButtons>
         </IonToolbar>
       </IonHeader>
 
@@ -165,116 +258,86 @@ const ListPage: React.FC = () => {
               />
             </div>
           ) : (
-            subscriptions.map((sub: any) => {
-              const config = getPlatformConfig(sub.platform || "custom");
-              const IconComponent = config.icon;
-              const billDate = new Date(sub.firstBillDate);
-              const now = new Date();
-              const isThisMonth =
-                billDate.getMonth() === now.getMonth() &&
-                billDate.getFullYear() === now.getFullYear();
-              const isPast = billDate < now && !isThisMonth;
+            <IonReorderGroup
+              disabled={!isReorderEnabled}
+              onIonReorderEnd={handleReorder}
+            >
+              {subscriptions.map((sub: any) => {
+                const config = getPlatformConfig(sub.platform || "custom");
+                const IconComponent = config.icon;
+                const billDate = new Date(sub.firstBillDate);
+                const now = new Date();
+                const isThisMonth =
+                  billDate.getMonth() === now.getMonth() &&
+                  billDate.getFullYear() === now.getFullYear();
+                const isPast = billDate < now && !isThisMonth;
 
-              let subDescription = "";
+                let subDescription = "";
 
-              if (sub.billingPeriod === "onetime") {
-                if (isThisMonth) {
-                  subDescription = `✅ Bu Ayın Harcaması • ${billDate.toLocaleDateString(
-                    "tr-TR"
-                  )}`;
-                } else if (isPast) {
-                  subDescription = `⚠️ Geçmiş Harcama • ${billDate.toLocaleDateString(
-                    "tr-TR"
-                  )}`;
+                if (sub.billingPeriod === "onetime") {
+                  if (isThisMonth) {
+                    subDescription = `✅ Bu Ayın Harcaması • ${billDate.toLocaleDateString(
+                      "tr-TR"
+                    )}`;
+                  } else if (isPast) {
+                    subDescription = `⚠️ Geçmiş Harcama • ${billDate.toLocaleDateString(
+                      "tr-TR"
+                    )}`;
+                  } else {
+                    subDescription = `📅 Planlanan • ${billDate.toLocaleDateString(
+                      "tr-TR"
+                    )}`;
+                  }
                 } else {
-                  subDescription = `📅 Planlanan • ${billDate.toLocaleDateString(
-                    "tr-TR"
-                  )}`;
+                  subDescription = `${
+                    sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"
+                  } • İlk Ödeme: ${billDate.toLocaleDateString("tr-TR")}`;
                 }
-              } else {
-                subDescription = `${
-                  sub.billingPeriod === "yearly" ? "Yıllık" : "Aylık"
-                } • İlk Ödeme: ${billDate.toLocaleDateString("tr-TR")}`;
-              }
 
-              return (
-                <IonItemSliding key={sub.id}>
-                  <IonItem
-                    key={sub.id}
-                    lines="full"
-                    button
-                    onClick={() => openEditModal(sub)}
-                  >
-                    <div
-                      slot="start"
-                      style={{
-                        backgroundColor: config.color + "20",
-                        color: config.color,
-                        width: 48,
-                        height: 48,
-                        borderRadius: 12,
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "24px",
-                        marginRight: "12px",
-                        opacity: isPast ? 0.5 : 1,
-                      }}
-                    >
-                      <IconComponent />
-                    </div>
-
-                    <IonLabel>
-                      <h2
-                        style={{
-                          fontWeight: "bold",
-                          color: isPast ? "#888" : "",
-                        }}
-                      >
-                        {sub.name}
-                      </h2>
-                      <p
-                        style={{
-                          color:
-                            sub.billingPeriod === "onetime" && isThisMonth
-                              ? "var(--ion-color-success-shade)"
-                              : "",
-                        }}
-                      >
-                        {subDescription}
-                      </p>
-                    </IonLabel>
-                    <IonBadge
-                      slot="end"
-                      color={
-                        !sub.isActive
-                          ? "medium"
-                          : sub.billingPeriod === "onetime"
-                          ? isThisMonth
-                            ? "warning"
-                            : "medium"
-                          : "success"
-                      }
-                    >
-                      {sub.price} {sub.currency}
-                    </IonBadge>
+                return isReorderEnabled ? (
+                  <IonItem key={sub.id} lines="full">
+                    {renderItemContent(
+                      sub,
+                      isPast,
+                      subDescription,
+                      config,
+                      IconComponent,
+                      isThisMonth
+                    )}
+                    <IonReorder slot="end" />
                   </IonItem>
-                  <IonItemOptions side="end">
-                    <IonItemOption
-                      color="danger"
-                      onClick={() => handleDeleteClick(sub.id)}
+                ) : (
+                  <IonItemSliding key={sub.id}>
+                    <IonItem
+                      lines="full"
+                      button
+                      onClick={() => openEditModal(sub)}
                     >
-                      <IonIcon slot="icon-only" icon={trash} />
-                    </IonItemOption>
-                  </IonItemOptions>
-                </IonItemSliding>
-              );
-            })
+                      {renderItemContent(
+                        sub,
+                        isPast,
+                        subDescription,
+                        config,
+                        IconComponent,
+                        isThisMonth
+                      )}
+                    </IonItem>
+                    <IonItemOptions side="end">
+                      <IonItemOption
+                        color="danger"
+                        onClick={() => handleDeleteClick(sub.id)}
+                      >
+                        <IonIcon slot="icon-only" icon={trash} />
+                      </IonItemOption>
+                    </IonItemOptions>
+                  </IonItemSliding>
+                );
+              })}
+            </IonReorderGroup>
           )}
         </IonList>
 
         {/* --- Ekleme Butonu --- */}
-        {/* ÖNEMLİ: Tıklayınca seçili veriyi sıfırlıyoruz ki temiz form gelsin */}
         <IonFab vertical="bottom" horizontal="end" slot="fixed">
           <IonFabButton
             onClick={() => {
@@ -282,14 +345,14 @@ const ListPage: React.FC = () => {
               setShowModal(true);
             }}
             color="success"
+            disabled={isReorderEnabled}
           >
             <IonIcon icon={add} />
           </IonFabButton>
         </IonFab>
 
-        {/* --- İpucu Toast --- */}
         <IonToast
-          isOpen={showTip}
+          isOpen={showTip && !isReorderEnabled}
           onDidDismiss={() => setShowTip(false)}
           message="💡 İpucu: Düzenlemek veya silmek için aboneliği sola kaydırın."
           duration={3000}
